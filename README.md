@@ -1,2 +1,2 @@
-# game_dev_1
-Repository for testing game engine and games within
+## Game_dev_1
+Repository made for testing game engine and games made with it.
