@@ -2,31 +2,14 @@ from asyncio.format_helpers import _format_args_and_kwargs
 import pygame
 from pygame import *
 from pygame import K_RETURN, K_UP, K_DOWN
+from levels import Level_1
 
 def Move_char(pressed_key,char):
     if pressed_key == K_w:
         char.pos += 10
-        
 
 
-def Level_1():
-    running = True
-    while running:
-        screen.fill((255, 255, 255))
-        main_char = pygame.image.load("media/characters/main_char_sranding.png")
-        screen.blit(main_char, (250,450))
-
-
-        pygame.display.update()
-        for event in pygame.event.get():
-            if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    running = False
-                if event.key == K_w or K_a or K_d or K_s:
-                    Move_char(event.key)
-
-
-def Game_start():
+def Game_start(screen):
     running = True
     while running:
         screen.fill((255, 255, 255))
@@ -71,7 +54,7 @@ def Game_start():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos = pygame.mouse.get_pos()
                 if level_1_button.collidepoint(pos):
-                    Level_1()
+                    Level_1(screen)
                 if level_2_button.collidepoint(pos):
                     Level_2()
                 if level_3_button.collidepoint(pos):
@@ -128,13 +111,14 @@ def Game_options():
 
         
 
-def main_menu():
+def main_menu(screen,res_x,res_y):
 
     running = True
     while running:
         screen.fill((255, 255, 255))
 
         main_menu = pygame.image.load("media/backgrounds/main_menu.jpg")
+        main_menu = pygame.transform.rotozoom(main_menu, 0, res_x/1600)
         screen.blit(main_menu, (0,0))
 
         start_game_button = pygame.draw.rect(screen, (255, 255, 255), (150, 250, 200, 50), 3)
@@ -160,31 +144,102 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pos = pygame.mouse.get_pos()
                 if start_game_button.collidepoint(pos):
-                    Game_start()
+                    Game_start(screen)
 
                 if options_button.collidepoint(pos):
-                    Game_options()
+                    Game_options(screen)
                     
                 if quit_button.collidepoint(pos):
-                    Game_quit()
+                    Game_quit(screen)
                     
         pygame.display.update()
 
+def set_game_resolution():
+    
+    pygame.init()
+    screen = pygame.display.set_mode([500, 500])
+    
+    height_input_active = False
+    width_input_active = False
+    resolution_values = ''
+    resolution_width = 0
+    resolution_height = 0
+
+    running = True
+    while running:
+
+        screen.fill((255, 255, 255))
+        if width_input_active == False: 
+            res_width_input_rect = pygame.draw.rect(screen, (139, 0, 0), (150, 250, 200, 50), 3)
+        if height_input_active == False:    
+            res_height_input_rect = pygame.draw.rect(screen, (139, 0, 0), (150, 380, 200, 50), 3)
+
+        done_rect = pygame.draw.rect(screen, (139, 0, 0), (350, 450, 100, 40), 3)
+        
+        font = pygame.font.SysFont(None, 30)
+        text = font.render('Done', True, (128, 0, 0))
+        screen.blit(text, (375, 460))
+        text = font.render('Enter 16:9 resolution:', True, (128, 0, 0))
+        screen.blit(text, (145, 170))
+        text = font.render('Enter width:', True, (128, 0, 0))
+        screen.blit(text, (190, 220))
+        text = font.render('Enter height:', True, (128, 0, 0))
+        screen.blit(text, (190, 345))
+        font = pygame.font.SysFont(None, 27)
+        if resolution_width != 0:
+            text = font.render(str(resolution_width), True, (128, 0, 0))
+            screen.blit(text, (370, 270))
+        if resolution_height != 0:
+            text = font.render(str(resolution_height), True, (128, 0, 0))
+            screen.blit(text, (370, 400))
 
 
-pygame.init()
-screen = pygame.display.set_mode([500, 500])
+        for event in pygame.event.get():
+            
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pos = pygame.mouse.get_pos()
+                if res_width_input_rect.collidepoint(pos):
+                    width_input_active = True
+                    height_input_active = False
+                elif res_height_input_rect.collidepoint(pos):
+                    width_input_active = False
+                    height_input_active = True
+                elif done_rect.collidepoint(pos):
+                    running = False
+                else:
+                    width_input_active = False
+                    height_input_active = False 
+            
+            if event.type == KEYDOWN:
+                if event.key == K_RETURN:
+                    if height_input_active == True:
+                        resolution_height = int(resolution_values)
+                        resolution_values = ''
+                        height_input_active = False
+                    else:
+                        resolution_width = int(resolution_values)
+                        resolution_values = ''
+                        width_input_active = True
+                elif event.key == K_BACKSPACE:
+                    resolution_values = resolution_values[:-1]
+                else: 
+                    resolution_values += event.unicode
 
-main_menu() 
+        if width_input_active == True:
+            res_width_input_rect = pygame.draw.rect(screen, (0, 210, 0), (150, 250, 200, 50), 3)
+            text = font.render(resolution_values, True, (128, 0, 0))
+            screen.blit(text, (160, 270))
+        if height_input_active == True:
+            res_height_input_rect = pygame.draw.rect(screen, (0, 210, 0), (150, 380, 200, 50), 3)
+            text = font.render(resolution_values, True, (128, 0, 0))
+            screen.blit(text, (160, 400))
+        
+        pygame.display.update()
 
-running = True
-while running:
+    screen = pygame.display.set_mode([resolution_width, resolution_height])
+    main_menu(screen,resolution_width, resolution_height)
 
-    # Did the user click the window close button?
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
+set_game_resolution()
 
 pygame.quit()
 
